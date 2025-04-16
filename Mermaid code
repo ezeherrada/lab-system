@@ -1,0 +1,55 @@
+graph TD
+    A[Start] --> B{User Authenticated?}
+    B -->|No| C[Show Login Form]
+    C --> D{Login Valid?}
+    D -->|No| C
+    D -->|Yes| E[Load Dashboard]
+    B -->|Yes| E
+    
+    E --> F[Employee Dashboard]
+    F --> G{User Action?}
+    
+    G -->|Search| H[Enter Search Terms]
+    H --> I[Filter Employee Records]
+    I --> F
+    
+    G -->|Sort| J[Select Column to Sort]
+    J --> K[Reorder Employee Records]
+    K --> F
+    
+    G -->|Create New| L[Open Add Employee Modal]
+    L --> M[Fill Employee Details]
+    M --> N{Form Valid?}
+    N -->|No| O[Show Validation Errors]
+    O --> M
+    N -->|Yes| P[Save to Database]
+    P --> Q[Close Modal]
+    Q --> R[Refresh Dashboard]
+    R --> F
+    
+    G -->|Edit| S[Select Employee Record]
+    S --> T[Open Edit Modal]
+    T --> U[Modify Employee Details]
+    U --> V{Form Valid?}
+    V -->|No| W[Show Validation Errors]
+    W --> U
+    V -->|Yes| X[Update Database]
+    X --> Y[Close Modal]
+    Y --> R
+    
+    G -->|Delete| Z[Select Employee Record]
+    Z --> AA[Show Confirmation Dialog]
+    AA --> AB{Confirm Delete?}
+    AB -->|No| AC[Cancel Operation]
+    AC --> F
+    AB -->|Yes| AD[Remove from Database]
+    AD --> R
+    
+    G -->|Logout| AE[End User Session]
+    AE --> A
+    
+    subgraph "Role-Based Access Control"
+    AF[Admin] -->|Full Access| F
+    AG[Manager] -->|Limited Edit Rights| F
+    AH[Viewer] -->|Read-Only Access| F
+    end
