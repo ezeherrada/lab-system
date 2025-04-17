@@ -1,0 +1,235 @@
+import React from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  ArrowUpRight,
+  Activity,
+  Users,
+  FileText,
+  Shield,
+  AlertTriangle,
+} from "lucide-react";
+
+interface DashboardCardProps {
+  title: string;
+  description: string;
+  metric: string;
+  status: "healthy" | "warning" | "critical";
+  change?: string;
+  icon: React.ReactNode;
+  actionText: string;
+  onClick?: () => void;
+}
+
+const DashboardCard = ({
+  title,
+  description,
+  metric,
+  status,
+  change,
+  icon,
+  actionText,
+  onClick = () => {},
+}: DashboardCardProps) => {
+  const statusColors = {
+    healthy:
+      "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+    warning:
+      "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
+    critical: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
+  };
+
+  return (
+    <Card className="overflow-hidden bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow duration-300">
+      <CardHeader className="pb-2">
+        <div className="flex justify-between items-start">
+          <div className="p-2 rounded-lg bg-primary/10">{icon}</div>
+          <Badge className={statusColors[status]}>
+            {status === "healthy"
+              ? "Healthy"
+              : status === "warning"
+                ? "Warning"
+                : "Critical"}
+          </Badge>
+        </div>
+        <CardTitle className="text-xl mt-2">{title}</CardTitle>
+        <CardDescription>{description}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex flex-col space-y-1">
+          <span className="text-3xl font-bold">{metric}</span>
+          {change && (
+            <span className="text-sm text-muted-foreground flex items-center">
+              <ArrowUpRight className="h-4 w-4 mr-1" />
+              {change} from last period
+            </span>
+          )}
+        </div>
+      </CardContent>
+      <CardFooter>
+        <Button variant="outline" className="w-full" onClick={onClick}>
+          {actionText}
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+};
+
+const DashboardContent = () => {
+  // Mock data for dashboard cards
+  const dashboardData = [
+    {
+      title: "API Endpoints",
+      description: "Monitor your API endpoints performance and status",
+      metric: "24/25 Online",
+      status: "healthy" as const,
+      change: "+2%",
+      icon: <Activity className="h-5 w-5 text-primary" />,
+      actionText: "View API Monitor",
+      onClick: () => console.log("Navigate to API Monitor"),
+    },
+    {
+      title: "Authentication",
+      description: "Manage user access and permissions",
+      metric: "156 Active Users",
+      status: "healthy" as const,
+      change: "+12%",
+      icon: <Users className="h-5 w-5 text-primary" />,
+      actionText: "Manage Authentication",
+      onClick: () => console.log("Navigate to Authentication"),
+    },
+    {
+      title: "Documentation",
+      description: "Access API documentation and examples",
+      metric: "95% Coverage",
+      status: "warning" as const,
+      change: "+5%",
+      icon: <FileText className="h-5 w-5 text-primary" />,
+      actionText: "View Documentation",
+      onClick: () => console.log("Navigate to Documentation"),
+    },
+    {
+      title: "Security",
+      description: "Monitor security threats and authentication attempts",
+      metric: "3 Alerts",
+      status: "critical" as const,
+      icon: <Shield className="h-5 w-5 text-primary" />,
+      actionText: "View Security Analytics",
+      onClick: () => console.log("Navigate to Security"),
+    },
+  ];
+
+  return (
+    <div className="p-6 bg-background">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-muted-foreground">
+          Welcome to your Payroll Management System API Dashboard.
+        </p>
+      </div>
+
+      {/* Alert for critical issues */}
+      {dashboardData.some((card) => card.status === "critical") && (
+        <div className="mb-6 p-4 border border-red-200 rounded-lg bg-red-50 dark:bg-red-900/20 dark:border-red-800 flex items-center">
+          <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400 mr-2" />
+          <span className="text-red-800 dark:text-red-300">
+            There are critical issues that require your attention.
+          </span>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {dashboardData.map((card, index) => (
+          <DashboardCard key={index} {...card} />
+        ))}
+      </div>
+
+      <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent API Activity</CardTitle>
+            <CardDescription>
+              Overview of recent API requests and responses
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {[1, 2, 3].map((_, i) => (
+                <div
+                  key={i}
+                  className="flex justify-between items-center border-b pb-2 last:border-0"
+                >
+                  <div>
+                    <p className="font-medium">
+                      {
+                        [
+                          "GET /api/employees",
+                          "POST /api/payroll",
+                          "PUT /api/settings",
+                        ][i]
+                      }
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {["200 OK", "201 Created", "200 OK"][i]}
+                    </p>
+                  </div>
+                  <Badge variant={["default", "default", "default"][i]}>
+                    {["Success", "Success", "Success"][i]}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Button variant="outline" className="w-full">
+              View All Activity
+            </Button>
+          </CardFooter>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>System Health</CardTitle>
+            <CardDescription>
+              Current system performance metrics
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {[
+                { name: "Response Time", value: "120ms", status: "healthy" },
+                { name: "CPU Usage", value: "45%", status: "healthy" },
+                { name: "Memory Usage", value: "78%", status: "warning" },
+              ].map((metric, i) => (
+                <div key={i} className="flex justify-between items-center">
+                  <p className="font-medium">{metric.name}</p>
+                  <div className="flex items-center space-x-2">
+                    <span>{metric.value}</span>
+                    <div
+                      className={`h-2 w-2 rounded-full ${metric.status === "healthy" ? "bg-green-500" : "bg-yellow-500"}`}
+                    ></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Button variant="outline" className="w-full">
+              View System Details
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+export default DashboardContent;
