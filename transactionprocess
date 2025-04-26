@@ -1,0 +1,752 @@
+import React, { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { format } from "date-fns";
+import {
+  CalendarIcon,
+  ChevronRight,
+  CheckCircle,
+  AlertCircle,
+  Search,
+  X,
+} from "lucide-react";
+
+interface Employee {
+  id: string;
+  name: string;
+  position: string;
+  department: string;
+  salary: number;
+}
+
+interface TransactionDetails {
+  type: string;
+  date: Date;
+  amount: number;
+  description: string;
+  employees: Employee[];
+  taxRate?: number;
+  adjustmentReason?: string;
+}
+
+const TransactionProcessor = () => {
+  const [activeTab, setActiveTab] = useState("salary");
+  const [currentStep, setCurrentStep] = useState(1);
+  const [selectedEmployees, setSelectedEmployees] = useState<Employee[]>([]);
+  const [transactionDetails, setTransactionDetails] =
+    useState<TransactionDetails>({
+      type: "salary",
+      date: new Date(),
+      amount: 0,
+      description: "",
+      employees: [],
+      taxRate: 0,
+      adjustmentReason: "",
+    });
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [transactionComplete, setTransactionComplete] = useState(false);
+
+  // Mock data for employees
+  const mockEmployees: Employee[] = [
+    {
+      id: "1",
+      name: "John Doe",
+      position: "Software Engineer",
+      department: "Engineering",
+      salary: 85000,
+    },
+    {
+      id: "2",
+      name: "Jane Smith",
+      position: "Product Manager",
+      department: "Product",
+      salary: 95000,
+    },
+    {
+      id: "3",
+      name: "Robert Johnson",
+      position: "UX Designer",
+      department: "Design",
+      salary: 78000,
+    },
+    {
+      id: "4",
+      name: "Emily Davis",
+      position: "Marketing Specialist",
+      department: "Marketing",
+      salary: 72000,
+    },
+    {
+      id: "5",
+      name: "Michael Wilson",
+      position: "Sales Representative",
+      department: "Sales",
+      salary: 68000,
+    },
+  ];
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    setCurrentStep(1);
+    setSelectedEmployees([]);
+    setTransactionDetails({
+      ...transactionDetails,
+      type: value,
+      employees: [],
+      amount: 0,
+      description: "",
+    });
+  };
+
+  const handleEmployeeSelection = (employee: Employee, isSelected: boolean) => {
+    if (isSelected) {
+      setSelectedEmployees([...selectedEmployees, employee]);
+    } else {
+      setSelectedEmployees(
+        selectedEmployees.filter((emp) => emp.id !== employee.id),
+      );
+    }
+  };
+
+  const handleNextStep = () => {
+    if (currentStep === 1) {
+      setTransactionDetails({
+        ...transactionDetails,
+        employees: selectedEmployees,
+      });
+    }
+    setCurrentStep(currentStep + 1);
+  };
+
+  const handlePreviousStep = () => {
+    setCurrentStep(currentStep - 1);
+  };
+
+  const handleSubmitTransaction = () => {
+    // Here you would typically make an API call to process the transaction
+    setShowConfirmation(false);
+    setTransactionComplete(true);
+    // Reset form after successful submission
+    setTimeout(() => {
+      setTransactionComplete(false);
+      setCurrentStep(1);
+      setSelectedEmployees([]);
+      setTransactionDetails({
+        type: activeTab,
+        date: new Date(),
+        amount: 0,
+        description: "",
+        employees: [],
+        taxRate: 0,
+        adjustmentReason: "",
+      });
+    }, 3000);
+  };
+
+  const renderEmployeeSelection = () => {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center space-x-2 mb-4">
+          <Search className="h-5 w-5 text-gray-400" />
+          <Input placeholder="Search employees..." className="flex-1" />
+        </div>
+
+        <div className="border rounded-md">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-12">Select</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>Position</TableHead>
+                <TableHead>Department</TableHead>
+                <TableHead className="text-right">Salary</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {mockEmployees.map((employee) => (
+                <TableRow key={employee.id}>
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedEmployees.some(
+                        (emp) => emp.id === employee.id,
+                      )}
+                      onCheckedChange={(checked) =>
+                        handleEmployeeSelection(employee, checked === true)
+                      }
+                    />
+                  </TableCell>
+                  <TableCell>{employee.name}</TableCell>
+                  <TableCell>{employee.position}</TableCell>
+                  <TableCell>{employee.department}</TableCell>
+                  <TableCell className="text-right">
+                    ${employee.salary.toLocaleString()}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+
+        <div className="flex justify-between items-center mt-4">
+          <div>
+            <p className="text-sm font-medium">
+              Selected: {selectedEmployees.length} employees
+            </p>
+          </div>
+          <Button
+            onClick={handleNextStep}
+            disabled={selectedEmployees.length === 0}
+          >
+            Next <ChevronRight className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
+  const renderTransactionDetails = () => {
+    if (activeTab === "salary") {
+      return (
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="date">Disbursement Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left font-normal"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {transactionDetails.date ? (
+                      format(transactionDetails.date, "PPP")
+                    ) : (
+                      <span>Pick a date</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={transactionDetails.date}
+                    onSelect={(date) =>
+                      date &&
+                      setTransactionDetails({ ...transactionDetails, date })
+                    }
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="amount">Total Amount</Label>
+              <Input
+                id="amount"
+                type="number"
+                value={transactionDetails.amount || ""}
+                onChange={(e) =>
+                  setTransactionDetails({
+                    ...transactionDetails,
+                    amount: parseFloat(e.target.value) || 0,
+                  })
+                }
+                placeholder="0.00"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              value={transactionDetails.description}
+              onChange={(e) =>
+                setTransactionDetails({
+                  ...transactionDetails,
+                  description: e.target.value,
+                })
+              }
+              placeholder="Enter payment details..."
+            />
+          </div>
+
+          <div className="mt-6">
+            <h3 className="text-sm font-medium mb-2">Selected Employees</h3>
+            <div className="border rounded-md max-h-48 overflow-y-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Department</TableHead>
+                    <TableHead className="text-right">Salary</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {selectedEmployees.map((employee) => (
+                    <TableRow key={employee.id}>
+                      <TableCell>{employee.name}</TableCell>
+                      <TableCell>{employee.department}</TableCell>
+                      <TableCell className="text-right">
+                        ${employee.salary.toLocaleString()}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+
+          <div className="flex justify-between items-center mt-6">
+            <Button variant="outline" onClick={handlePreviousStep}>
+              Back
+            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  disabled={
+                    !transactionDetails.amount ||
+                    !transactionDetails.description
+                  }
+                >
+                  Process Payment
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>
+                    Confirm Salary Disbursement
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    You are about to process salary payments for{" "}
+                    {selectedEmployees.length} employees with a total amount of
+                    ${transactionDetails.amount.toLocaleString()}. This action
+                    cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleSubmitTransaction}>
+                    Confirm
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </div>
+      );
+    } else if (activeTab === "adjustment") {
+      return (
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="date">Adjustment Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left font-normal"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {transactionDetails.date ? (
+                      format(transactionDetails.date, "PPP")
+                    ) : (
+                      <span>Pick a date</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={transactionDetails.date}
+                    onSelect={(date) =>
+                      date &&
+                      setTransactionDetails({ ...transactionDetails, date })
+                    }
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="amount">Adjustment Amount</Label>
+              <Input
+                id="amount"
+                type="number"
+                value={transactionDetails.amount || ""}
+                onChange={(e) =>
+                  setTransactionDetails({
+                    ...transactionDetails,
+                    amount: parseFloat(e.target.value) || 0,
+                  })
+                }
+                placeholder="0.00"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="adjustmentReason">Adjustment Reason</Label>
+            <Select
+              onValueChange={(value) =>
+                setTransactionDetails({
+                  ...transactionDetails,
+                  adjustmentReason: value,
+                })
+              }
+              defaultValue={transactionDetails.adjustmentReason}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select reason" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="bonus">Bonus</SelectItem>
+                <SelectItem value="raise">Salary Raise</SelectItem>
+                <SelectItem value="correction">Correction</SelectItem>
+                <SelectItem value="deduction">Deduction</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              value={transactionDetails.description}
+              onChange={(e) =>
+                setTransactionDetails({
+                  ...transactionDetails,
+                  description: e.target.value,
+                })
+              }
+              placeholder="Enter adjustment details..."
+            />
+          </div>
+
+          <div className="mt-6">
+            <h3 className="text-sm font-medium mb-2">Selected Employees</h3>
+            <div className="border rounded-md max-h-48 overflow-y-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Department</TableHead>
+                    <TableHead className="text-right">Current Salary</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {selectedEmployees.map((employee) => (
+                    <TableRow key={employee.id}>
+                      <TableCell>{employee.name}</TableCell>
+                      <TableCell>{employee.department}</TableCell>
+                      <TableCell className="text-right">
+                        ${employee.salary.toLocaleString()}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+
+          <div className="flex justify-between items-center mt-6">
+            <Button variant="outline" onClick={handlePreviousStep}>
+              Back
+            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  disabled={
+                    !transactionDetails.amount ||
+                    !transactionDetails.description ||
+                    !transactionDetails.adjustmentReason
+                  }
+                >
+                  Process Adjustment
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Confirm Salary Adjustment</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    You are about to process a{" "}
+                    {transactionDetails.adjustmentReason} adjustment of $
+                    {transactionDetails.amount.toLocaleString()} for{" "}
+                    {selectedEmployees.length} employees. This action cannot be
+                    undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleSubmitTransaction}>
+                    Confirm
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </div>
+      );
+    } else if (activeTab === "tax") {
+      return (
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="date">Tax Calculation Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left font-normal"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {transactionDetails.date ? (
+                      format(transactionDetails.date, "PPP")
+                    ) : (
+                      <span>Pick a date</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={transactionDetails.date}
+                    onSelect={(date) =>
+                      date &&
+                      setTransactionDetails({ ...transactionDetails, date })
+                    }
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="taxRate">Tax Rate (%)</Label>
+              <Input
+                id="taxRate"
+                type="number"
+                value={transactionDetails.taxRate || ""}
+                onChange={(e) =>
+                  setTransactionDetails({
+                    ...transactionDetails,
+                    taxRate: parseFloat(e.target.value) || 0,
+                  })
+                }
+                placeholder="0.00"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="description">Tax Period Description</Label>
+            <Textarea
+              id="description"
+              value={transactionDetails.description}
+              onChange={(e) =>
+                setTransactionDetails({
+                  ...transactionDetails,
+                  description: e.target.value,
+                })
+              }
+              placeholder="Enter tax period details..."
+            />
+          </div>
+
+          <div className="mt-6">
+            <h3 className="text-sm font-medium mb-2">Selected Employees</h3>
+            <div className="border rounded-md max-h-48 overflow-y-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Department</TableHead>
+                    <TableHead className="text-right">Salary</TableHead>
+                    <TableHead className="text-right">Est. Tax</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {selectedEmployees.map((employee) => (
+                    <TableRow key={employee.id}>
+                      <TableCell>{employee.name}</TableCell>
+                      <TableCell>{employee.department}</TableCell>
+                      <TableCell className="text-right">
+                        ${employee.salary.toLocaleString()}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        $
+                        {(
+                          (employee.salary *
+                            (transactionDetails.taxRate || 0)) /
+                          100
+                        ).toLocaleString()}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+
+          <div className="flex justify-between items-center mt-6">
+            <Button variant="outline" onClick={handlePreviousStep}>
+              Back
+            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  disabled={
+                    !transactionDetails.taxRate ||
+                    !transactionDetails.description
+                  }
+                >
+                  Process Tax Calculation
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Confirm Tax Calculation</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    You are about to process tax calculations at a rate of{" "}
+                    {transactionDetails.taxRate}% for {selectedEmployees.length}{" "}
+                    employees. This will generate tax reports for the specified
+                    period.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleSubmitTransaction}>
+                    Confirm
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </div>
+      );
+    }
+  };
+
+  return (
+    <div className="bg-white p-6 rounded-lg shadow-sm">
+      <Card>
+        <CardHeader>
+          <CardTitle>Transaction Processor</CardTitle>
+          <CardDescription>
+            Process payroll transactions including salary disbursements,
+            adjustments, and tax calculations.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Tabs
+            value={activeTab}
+            onValueChange={handleTabChange}
+            className="w-full"
+          >
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="salary">Salary Disbursement</TabsTrigger>
+              <TabsTrigger value="adjustment">Salary Adjustment</TabsTrigger>
+              <TabsTrigger value="tax">Tax Calculation</TabsTrigger>
+            </TabsList>
+            <TabsContent value={activeTab} className="mt-6">
+              <div className="space-y-6">
+                {currentStep === 1 ? (
+                  <div>
+                    <h3 className="text-lg font-medium mb-4">
+                      Step 1: Select Employees
+                    </h3>
+                    {renderEmployeeSelection()}
+                  </div>
+                ) : (
+                  <div>
+                    <h3 className="text-lg font-medium mb-4">
+                      Step 2: Enter Transaction Details
+                    </h3>
+                    {renderTransactionDetails()}
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+
+      {/* Transaction Complete Dialog */}
+      <Dialog open={transactionComplete} onOpenChange={setTransactionComplete}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center">
+              <CheckCircle className="h-6 w-6 text-green-500 mr-2" />
+              Transaction Processed Successfully
+            </DialogTitle>
+            <DialogDescription>
+              Your transaction has been processed and recorded in the system. A
+              confirmation has been sent to the relevant parties.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button onClick={() => setTransactionComplete(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export default TransactionProcessor;
